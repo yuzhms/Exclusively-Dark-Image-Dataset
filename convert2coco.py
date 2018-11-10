@@ -2,6 +2,10 @@ import datetime
 import os
 from PIL import Image
 import json
+import shutil
+
+# flag turn on to split and copy image
+SPILT = False
 
 CLASSID = {
     'Bicycle': 1, 'Boat': 2, 'Bottle': 3, 'Bus': 4, 'Car': 5, 'Cat': 6,
@@ -39,7 +43,7 @@ class ExDark():
         self.__create_categories()
 
         for name, meta in self.meta_data.items():
-            images, annotaions = self.__get_image_annotation_pair(meta)
+            images, annotaions = self.__get_image_annotation_pair(meta, name)
             json_data = {
                 'info': self.info,
                 'images': images,
@@ -50,6 +54,7 @@ class ExDark():
             }
             with open(os.path.join(self._datapath, 'ExDark_' + name + '.json'), 'w') as jsonfile:
                 json.dump(json_data, jsonfile, sort_keys=True, indent=4)
+                pass
     def __read_list(self):
         """
         list sample:
@@ -78,7 +83,7 @@ class ExDark():
             'val': valset,
             'test': testset
         }
-    def __get_image_annotation_pair(self, image_set):
+    def __get_image_annotation_pair(self, image_set, name):
         '''
         create image and object detection annotation
         annotation sample:
@@ -117,6 +122,11 @@ class ExDark():
                     }
                     self.__global_id += 1
                     annotations.append(annotation)
+            if SPILT:
+                dirname = os.path.join(self._datapath, 'exdark', 'exdark_'+ name)
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+                shutil.copyfile(imgpath, os.path.join(dirname, item['file_name']))
         return images, annotations
             
     def __create_categories(self):
